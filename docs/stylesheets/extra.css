@@ -78,15 +78,23 @@ tr {
 }
 
 iframe {
-  width: 100%;
-  max-width: 560px; /* Set a max width */
-  height: 315px; /* Maintain the aspect ratio */
   border: none; /* Remove the default border */
   border-radius: 10px; /* Add rounded corners */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  max-height: 1080px;
 }
 
-.iframe-wrapper {
+.youtube-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.youtube-wrapper iframe {
+  aspect-ratio: 16/9;
+}
+
+.video-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;

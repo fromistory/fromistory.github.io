@@ -51,42 +51,19 @@ def make_image_md(url, caption='', zoom_click=True, figure=True):
     low_res_url = base_url + '?format=jpg&name=medium'
     orig_url = base_url + f'?format={ext}&name=orig'
 
-    # TODO why doesn't this format work??
     return f'''
 ![]({orig_url}){{ loading=lazy data-gallery="gallery{gallery_index}" srcset="{low_res_url}" }}
 '''
 
-#     return f'''
-# <a class="glightbox" href="{orig_url}" data-gallery="gallery{gallery_index}">
-# <img alt="" data-gallery="gallery{gallery_index}" loading="lazy" src="{low_res_url}">
-# </a>
-# '''
-
-def make_iframe_md(embed_url, display_url=None):
-    if display_url is None:
-        return f"""\
-<figure class="snippet" markdown="1">
-<iframe src="{embed_url}" frameborder="0" allow="fullscreen"></iframe>
-</figure>"""
-    else:
-        return f"""\
-<figure class="snippet" markdown="1">
-<iframe src="{embed_url}" frameborder="0" allow="fullscreen"></iframe>
-<figcaption><a href="{display_url}">{display_url}</a></figcaption>
-</figure>"""
-
 
 def make_video_md(url, thumb_path, content_type):
-    # if youtubeVideoId := video_redirects.get(attachment_id):
-    #     return make_iframe_md(f'https://www.youtube.com/embed/{youtubeVideoId}')
-    # else:
     return f"""
-<figure markdown="1">
+<div class="video-wrapper" markdown="1">
 <video controls="controls" preload="none" poster="{thumb_path}">
 <source src="{url}" type="{content_type}">
-Your browser does not support the video tag.
 </video>
-</figure>"""
+</div>
+"""
 
 
 def make_media_md(post):
@@ -178,13 +155,14 @@ def make_post_md(post: Post):
 def make_youtube_md(url):
     embed_url = url.replace('watch?v=', 'embed/')
     return f"""
+<div class="youtube-wrapper" markdown="1">
 <iframe 
     src="{embed_url}"
-    title="What is this"
     frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
     allowfullscreen>
 </iframe>
+</div>
 """
 
 # TODO actually embed the tweet
@@ -192,26 +170,22 @@ def make_tweet_md(url):
     return f'<a href="{url}">{url}</a>'
 
 def make_yt_events_md(data):
-    out = '<div class="grid" markdown="1">\n'
+    mds = []
     for d in data:
-        yt_md = make_youtube_md(f'https://youtube.com/watch?v={d['id']}')
-        out += f'\n{yt_md}\n'
+        yt_md = make_youtube_md(f'https://www.youtube.com/watch?v={d['id']}')
+        mds.append(f'\n{yt_md}\n')
 
-    out += '\n</div>'
-    return out
+    if len(data) > 1:
+        return f'<div class="grid" markdown="1">\n{'\n'.join(mds)}</div>'
+
+    return '\n'.join(mds)
 
 
 def make_event(event_date, posts: list[Post], events_dict, yt_data):
     # filter the posts
     authors = set([p.author for p in posts])
     def is_valid_post(p):
-        if '180124' in p.author:
-            print(p.full_text)
-
         for a in authors:
-            if event_date == '180124':
-                print(p.full_text)
-
             if a == p.author:
                 continue
 
@@ -268,11 +242,16 @@ hide:
 
         out += f'* [Twitter search]({twi_search}) | [YouTube search]({e['YouTube']})\n'
 
-        if cam_1 := e.get('Cam 1'):
-            out += make_youtube_md(cam_1) + '\n'
+        cam_1 = e.get('Cam 1')
+        cam_2 = e.get('Cam 2')
+        if cam_1 or cam_2:
+            out += '<div class="grid" markdown="1">'
+            if cam_1:
+                out += make_youtube_md(cam_1) + '\n'
 
-        if cam_2 := e.get('Cam 2'):
-            out += make_youtube_md(cam_2) + '\n'
+            if cam_2:
+                out += make_youtube_md(cam_2) + '\n'
+            out += '</div>'
 
         out += '\n---\n\n'
         # out += f'# {e['Eng Name']}'
@@ -434,7 +413,26 @@ def get_date_name(date, events_dict):
 
 def get_yt_events():
     with open('./raw/youtube_events.json', 'r', encoding='utf-8') as f:
-        return json.load(f)
+        data = json.load(f)
+
+    def is_valid_yt(r):
+        title = r['title']
+        names = ['fromis', '프로미스나인', '프나', '프미나']
+        banned_terms = ['치어리더']
+
+        for b in banned_terms:
+            if b in title:
+                print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
+                return False
+
+
+        for n in names:
+            if n in title:
+                return True
+
+        return False
+
+    return {k: [x for x in arr if is_valid_yt(x)] for k, arr in data.items()}
 
 def main():
     yt_data = get_yt_events()
