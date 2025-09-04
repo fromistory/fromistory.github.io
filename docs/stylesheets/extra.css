@@ -313,7 +313,7 @@ iframe {
   border-radius: 6px;
   color: var(--md-primary-bg-color); /* White/light text */
   background-color: var(--md-primary-fg-color); /* Theme's primary color */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 1);
   opacity: 0; /* Start hidden */
   transform: translateX(100%); /* Start off-screen to the right */
   transition: opacity 0.3s ease, transform 0.3s ease;
