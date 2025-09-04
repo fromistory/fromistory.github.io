@@ -181,6 +181,7 @@ def make_tweet_md(url):
 
 def make_yt_events_md(data):
     mds = []
+    data = sorted(data, key=lambda x: x['author'])
     for d in data:
         yt_md = make_youtube_md(f'https://www.youtube.com/watch?v={d['id']}')
         mds.append(f'\n{yt_md}\n')
