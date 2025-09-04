@@ -95,6 +95,7 @@ iframe {
 }
 
 .video-wrapper {
+  max-height: 1080px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -226,4 +227,37 @@ iframe {
 .grid-item p {
   width: 100%;
   height: 100%;
+}
+
+.video-thumb img {
+  max-height: 1080px;
+}
+
+.video-thumb {
+  position: relative;
+  display: inline-block; /* Or block, depending on your layout */
+}
+
+.video-thumb::after {
+  content: "▶";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* --- New styles for the circle --- */
+  width: 3rem; /* The size of the circle */
+  height: 3rem;
+  background: #b393ff; /* Optional: semi-transparent background */
+  border-radius: 50%;         /* This makes it a circle */
+
+  /* --- New styles for centering the icon --- */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* --- Icon styling --- */
+  color: white;
+  font-size: 1.5rem; /* Adjusted size for the icon inside the circle */
+  padding-left: 0.3rem; /* Nudge the icon for perfect visual centering */
 }

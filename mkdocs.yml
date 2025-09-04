@@ -61,6 +61,8 @@ plugins:
       background: none
       shadow: true
       manual: false
+      skip_classes:
+        - skip-lightbox
 #  - blog:
 #      blog_dir: events
 #      pagination: True

@@ -57,6 +57,16 @@ def make_image_md(url, caption='', zoom_click=True, figure=True):
 
 
 def make_video_md(url, thumb_path, content_type):
+#     return f"""
+# <div class="video-wrapper">
+# <a href="{url}" class="glightbox" data-gallery="gallery{gallery_index}">
+#   <div class="video-thumb">
+#   <img src="{thumb_path}" alt="Missing Thumbnail" class="skip-lightbox video-thumb" loading="lazy"/>
+#   </div>
+# </a>
+# </div>
+# """
+
     return f"""
 <div class="video-wrapper" markdown="1">
 <video controls="controls" preload="none" poster="{thumb_path}">
@@ -292,6 +302,9 @@ hide:
                     if len(p.get_images()) == 0 and len(p.get_videos()) == 0:
                         continue
 
+                    # if len(p.get_images()) > 0 and len(p.get_videos()) > 0:
+                    #     print('FOUND MULTI', p.author, p.event_date)
+
                     post_md = make_post_md(p)
                     out += post_md
                     out += '\n'
@@ -420,11 +433,14 @@ def get_yt_events():
         names = ['fromis', '프로미스나인', '프나', '프미나']
         banned_terms = ['치어리더']
 
+        ignored_authors = ['fromisubs']
+        if r['author'] in ignored_authors:
+            return False
+
         for b in banned_terms:
             if b in title:
                 print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
                 return False
-
 
         for n in names:
             if n in title:
