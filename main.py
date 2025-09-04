@@ -52,8 +52,14 @@ def make_image_md(url, caption='', zoom_click=True, figure=True):
     orig_url = base_url + f'?format={ext}&name=orig'
 
     return f'''
-![]({orig_url}){{ loading=lazy data-gallery="gallery{gallery_index}" srcset="{low_res_url}" }}
+<a data-fancybox="gallery{gallery_index}" href="{orig_url}">
+    <img src="{low_res_url}" alt="Animal Square">
+</a>
 '''
+
+#     return f'''
+# ![]({orig_url}){{ loading=lazy data-gallery="gallery{gallery_index}" srcset="{low_res_url}" }}
+# '''
 
 
 def make_video_md(url, thumb_path, content_type):
@@ -374,7 +380,7 @@ search:
         else:
             # 2. Use an HTML img tag to control the height
             # image_html = f'<img src="../{thumb_path_for_mkdocs}" alt="Thumbnail for {e}" style="height: 100px;">'
-            image_html = f'![*(No Thumbnail)*]({thumb_path_for_mkdocs}){{ width="100" }}'
+            image_html = f'![*(No Thumbnail)*]({thumb_path_for_mkdocs}){{ width="128" }}'
 
         # 3. Create the text part with the link
         eng_date_name, kor_date_name = get_date_name(e, events_dict)
@@ -384,29 +390,8 @@ search:
         # 4. Add a new row to the table for this event
         out += f"| {image_html} | {link_markdown} |\n"
 
-    # out += '</div>'
-    # return out
-
-
-
-
-#     out = "# Events\n"
-#
-#     for e in sorted_events:
-#         thumb_path = f'assets/thumb/{e}.jpg'
-#
-#         if not os.path.exists(f'docs/{thumb_path}'):
-#             print('ERROR no thumbnail found for ', e)
-#
-#         out += f"""
-# * ![]({thumb_path}) [**{e}** {get_event_name(e, events_dict)}](./events/{e})
-# """
-
     with open('docs/events/index.md', 'w', encoding='utf-8') as txt:
         txt.writelines(out)
-
-    # posts_by_event = gather_events(root_dir)
-    # for event, posts in posts_by_event.items():
 
 def get_date_name(date, events_dict):
     if events := events_dict.get(date):
@@ -431,11 +416,11 @@ def get_yt_events():
 
     def is_valid_yt(r):
         title = r['title']
-        names = ['fromis', '프로미스나인', '프나', '프미나']
+        # names = ['fromis', '프로미스나인', '프나', '프미나']
         banned_terms = ['치어리더']
 
-        ignored_authors = ['fromisubs']
-        if r['author'] in ignored_authors:
+        ignored_authors = ['fromisubs', 'parrotsubs', 'papago_9']
+        if r['author'].lower() in ignored_authors:
             return False
 
         for b in banned_terms:
@@ -443,11 +428,11 @@ def get_yt_events():
                 print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
                 return False
 
-        for n in names:
-            if n in title:
-                return True
+        # for n in names:
+        #     if n in title:
+        #         return True
 
-        return False
+        return True
 
     return {k: [x for x in arr if is_valid_yt(x)] for k, arr in data.items()}
 

@@ -35,10 +35,13 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 extra_css:
   - stylesheets/extra.css
-  - stylesheets/glightbox.css
+  - stylesheets/fancybox.css
+#  - https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.css
 extra_javascript:
   - javascripts/extra.js
-  - javascripts/glightbox.js
+  - javascripts/fancybox.umd.js
+#  - https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.umd.js
+#  - https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/panzoom/panzoom.umd.js
 #  - Events:
 #      - events/index.md
 #  - events/171129.md
@@ -47,22 +50,6 @@ plugins:
       redirect_maps:
         "index.md": "events/index.md"
   - search
-  - glightbox:
-      touchNavigation: true
-      loop: false
-      effect: fade
-      slide_effect: slide
-      width: auto
-      height: auto
-      zoomable: true
-      draggable: false
-      auto_caption: false
-      caption_position: bottom
-      background: none
-      shadow: true
-      manual: false
-      skip_classes:
-        - skip-lightbox
 #  - blog:
 #      blog_dir: events
 #      pagination: True

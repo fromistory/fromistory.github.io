@@ -65,4 +65,30 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+
+    Fancybox.bind("[data-fancybox]", {
+        Carousel: {
+            Toolbar: {
+                display: {
+                    left: [
+                        "counter",
+                    ],
+                    middle: [
+                        "zoomIn",
+                        "zoomOut",
+                        "toggle1to1",
+                        "rotateCCW",
+                        "rotateCW",
+                    ],
+                    right: [
+                        "thumbs",
+                        "download",
+                        "close",
+                    ],
+                }
+            }
+        }
+    });
+
+    Fancybox.getDefaults().zoomEffect = false;
 });
