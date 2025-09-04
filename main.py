@@ -53,7 +53,7 @@ def make_image_md(url, caption='', zoom_click=True, figure=True):
 
     return f'''
 <a data-fancybox="gallery{gallery_index}" href="{orig_url}">
-    <img src="{low_res_url}" alt="Animal Square">
+    <img src="{low_res_url}" alt="No Image" loading="lazy">
 </a>
 '''
 
@@ -380,12 +380,12 @@ search:
         else:
             # 2. Use an HTML img tag to control the height
             # image_html = f'<img src="../{thumb_path_for_mkdocs}" alt="Thumbnail for {e}" style="height: 100px;">'
-            image_html = f'![*(No Thumbnail)*]({thumb_path_for_mkdocs}){{ width="128" }}'
+            image_html = f'![*(No Thumbnail)*]({thumb_path_for_mkdocs}){{ width="128" loading=lazy }}'
 
         # 3. Create the text part with the link
         eng_date_name, kor_date_name = get_date_name(e, events_dict)
         # link_markdown = f"[**{e}** {eng_date_name}](./{e}){{ loading=lazy }}"
-        link_markdown = f"[**{e}**<br>{eng_date_name}<br>{kor_date_name}](./{e}){{ loading=lazy }}"
+        link_markdown = f"[**{e}**<br>{eng_date_name}<br>{kor_date_name}](./{e})"
 
         # 4. Add a new row to the table for this event
         out += f"| {image_html} | {link_markdown} |\n"
