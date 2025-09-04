@@ -45,8 +45,8 @@ def make_image_md(url, caption='', zoom_click=True, figure=True):
     if len(split) > 1:
         ext = split[1]
 
-    if ext == 'png':
-        print('Loading url', base_url, ext)
+    # if ext == 'png':
+    #     print('Loading url', base_url, ext)
 
     low_res_url = base_url + '?format=jpg&name=medium'
     orig_url = base_url + f'?format={ext}&name=orig'
@@ -122,7 +122,7 @@ def make_media_md(post):
     #             elems.append(make_image_md(image_url))
 
     grid = '<div class="grid" markdown="1">\n'
-    grid += '\n'.join([f'<div class="grid-item" markdown="1">{e}</div>' for e in elems])
+    grid += '\n'.join([f'<div class="grid-item glightbox" markdown="1">{e}</div>' for e in elems])
     grid += '\n</div>'
 
     # grid += '\n'.join(f'  <div>{e}</div>' for e in elems)
@@ -136,6 +136,12 @@ def make_media_md(post):
 def make_post_md(post: Post):
     # tags = get_tags(post.data)
     # tags_md = '\n'.join(['  - ' + t.removeprefix('#') for t in tags])
+
+    copy_button = f"""
+<button class="copy-link-button" data-copy-link="{post.link}">
+<span class="md-icon">:material-link:{{.big-emoji}}</span>
+</button>
+"""
 
     post_link = f"""
 <div class="post-link" style="text-align: right;" markdown="1">
@@ -162,7 +168,12 @@ def make_post_md(post: Post):
 {post_text_and_link}
 {post_media}
 </div>
+<div class="post-footer" markdown="1">
+<div class="footer-buttons" markdown="1">
+{copy_button}
 {post_link}
+</div>
+</div>
 </div>
 """
 
@@ -419,7 +430,7 @@ def get_yt_events():
         # names = ['fromis', '프로미스나인', '프나', '프미나']
         banned_terms = ['치어리더']
 
-        ignored_authors = ['fromisubs', 'parrotsubs', 'papago_9']
+        ignored_authors = ['ThePingiiz', 'parrotsubs', 'papago_9']
         if r['author'].lower() in ignored_authors:
             return False
 

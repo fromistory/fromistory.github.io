@@ -56,13 +56,13 @@ tr {
   padding-bottom: 0.5rem;
 }
 
-.post-link {
-  /*float: right;*/
-  margin-left: auto;
-  padding-right: 20px;
-  padding-bottom: 12px;
-  /*margin-bottom: 5px;*/
-}
+/*.post-link {*/
+/*  !*float: right;*!*/
+/*  margin-left: auto;*/
+/*  padding-right: 20px;*/
+/*  padding-bottom: 12px;*/
+/*  !*margin-bottom: 5px;*!*/
+/*}*/
 
 .post-link p {
   margin-block-start: 0;
@@ -121,6 +121,11 @@ iframe {
 
 .big-emoji {
   transform: scale(1.5);
+  color: var(--md-primary-fg-color);
+}
+
+.big-emoji:hover {
+  transform: scale(1.75);
 }
 
 .md-pagination__link {
@@ -195,6 +200,14 @@ iframe {
   height: 100%;
 }
 
+.glightbox a {
+  display: flex;
+  justify-content: center; /* horizontal */
+  align-items: center;     /* vertical */
+  width: 100%;
+  height: 100%;
+}
+
 .grid img {
   max-height: 1080px;
   width: 100%;
@@ -260,4 +273,62 @@ iframe {
   color: white;
   font-size: 1.5rem; /* Adjusted size for the icon inside the circle */
   padding-left: 0.3rem; /* Nudge the icon for perfect visual centering */
+}
+
+.copy-link-button {
+  cursor: pointer;
+}
+
+.post-footer {
+    margin-left: auto;
+    padding-right: 20px;
+    padding-bottom: 12px;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: flex-end; /* Ensures items are pushed to the right edge of the container */
+  gap: 1.2rem;               /* Spacing between buttons */
+}
+
+/* Container to hold all notifications */
+#notification-container {
+  position: fixed; /* Stays in place even when scrolling */
+  bottom: 2rem;
+  left: 50%;
+  z-index: 1050; /* Ensures it's on top of most other content */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between multiple notifications */
+  align-items: flex-end;
+}
+
+/* Individual notification style */
+.notification {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  color: var(--md-primary-bg-color); /* White/light text */
+  background-color: var(--md-primary-fg-color); /* Theme's primary color */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0; /* Start hidden */
+  transform: translateX(100%); /* Start off-screen to the right */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  min-width: 200px;
+  font-size: 2em; /* Make the icon a bit larger */
+}
+
+/* Style for the icon inside the notification */
+.notification .md-icon {
+  font-size: 1.5em; /* Make the icon a bit larger */
+  margin: 0;
+}
+
+/* State for when the notification is visible */
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
 }

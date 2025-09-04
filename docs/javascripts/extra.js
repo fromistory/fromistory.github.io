@@ -66,6 +66,43 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Select all buttons with the class 'copy-link-button'
+    const allCopyButtons = document.querySelectorAll('.copy-link-button');
+
+    allCopyButtons.forEach(button => {
+        button.addEventListener('click', async (event) => {
+            // Prevent the default button action
+            event.preventDefault();
+
+            const currentButton = event.currentTarget;
+            let linkToCopy = currentButton.dataset.copyLink;
+
+            // Handle 'self' keyword for current page URL
+            if (linkToCopy === 'self')
+            {
+                linkToCopy = window.location.href;
+            }
+
+            if (!linkToCopy)
+            {
+                return;
+            }
+
+            try
+            {
+                // Use the modern Clipboard API
+                await navigator.clipboard.writeText(linkToCopy);
+
+                // Show a success notification instead of changing button text
+                showNotification('Copied to clipboard');
+
+            } catch (err)
+            {
+                console.error('Failed to copy text: ', err);
+            }
+        });
+    });
+
     Fancybox.bind("[data-fancybox]", {
         Carousel: {
             Toolbar: {
@@ -92,3 +129,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     Fancybox.getDefaults().zoomEffect = false;
 });
+
+// --- Reusable Notification Function ---
+function showNotification(message, type = 'success') {
+    // Find the container, or create it if it doesn't exist
+    let container = document.getElementById('notification-container');
+    if (!container)
+    {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        document.body.appendChild(container);
+    }
+
+    // Create the notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`; // e.g., 'notification success' or 'notification error'
+
+    // Set the content with the Material for MkDocs icon syntax
+    notification.innerHTML = `
+        <span>${message}</span>
+    `;
+
+    // Add it to the container
+    container.appendChild(notification);
+
+    // Trigger the 'show' animation
+    // We use a tiny timeout to allow the browser to render the element before animating it
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+
+    // Set a timer to remove the notification
+    setTimeout(() => {
+        // Trigger the 'hide' animation (by removing 'show')
+        notification.classList.remove('show');
+
+        // Wait for the transition to finish before removing the element from the DOM
+        notification.addEventListener('transitionend', () => {
+            notification.remove();
+        });
+    }, 2500); // Notification stays for 3 seconds
+}
