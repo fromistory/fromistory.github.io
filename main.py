@@ -204,10 +204,16 @@ def make_yt_events_md(data):
         yt_md = make_youtube_md(f'https://www.youtube.com/watch?v={d['id']}')
         mds.append(f'\n{yt_md}\n')
 
-    if len(data) > 1:
-        return f'<div class="grid" markdown="1">\n{'\n'.join(mds)}</div>'
+    # if len(data) > 1:
+    return f'''
+<div class="author-container" markdown="1">
+## YouTube
+<div class="grid" markdown="1">
+\n{'\n'.join(mds)}
+</div>
+</div>'''
 
-    return '\n'.join(mds)
+    # return '\n'.join(mds)
 
 
 def make_event(event_date, posts: list[Post], events_dict, yt_data):
@@ -303,7 +309,7 @@ hide:
         yt_vids = yt_data.get(event_date, None)
         if yt_vids:
             out += make_yt_events_md(yt_vids)
-            out += '\n---\n'
+            # out += '\n---\n'
 
         first_auth = True
         for auth, ps in by_author.items():
