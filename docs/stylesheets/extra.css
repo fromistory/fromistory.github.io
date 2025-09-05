@@ -23,7 +23,7 @@ tr {
 
 .post-container {
   display: block;
-  width: 95%;
+  width: 100%;
   margin: 1rem auto;
   padding: 0;
   background: #172727;
@@ -42,7 +42,7 @@ tr {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
   margin: 0 auto;
   margin-bottom: 2rem;
-  padding: 1rem 1rem;
+  padding: 0.3rem 1rem;
 }
 
 .author-container h2 {
