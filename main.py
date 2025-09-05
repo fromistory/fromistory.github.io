@@ -435,6 +435,9 @@ def get_yt_events():
         if r['author'].lower() in ignored_authors:
             return False
 
+        if r['length'] < 20:
+            return False
+
         for b in banned_terms:
             if b in title:
                 print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
@@ -453,8 +456,8 @@ def main():
     events_dict = get_events_dict()
 
     # these are folders!
-    posts_by_event = gather_posts_by_event(['json-test'], events_dict)
-    # posts_by_event = gather_posts_by_event(['json2', 'json'], events_dict)
+    # posts_by_event = gather_posts_by_event(['json-test'], events_dict, slow=True)
+    posts_by_event = gather_posts_by_event(['json2', 'json'], events_dict)
 
     print(f'Generating {len(posts_by_event)} events')
 

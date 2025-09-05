@@ -2,6 +2,8 @@ import os
 import argparse
 from PIL import Image
 
+import twitter_utils as utils
+
 # --- Configuration (as requested) ---
 ROOT_DIRECTORY = './media/events'
 OUTPUT_DIRECTORY = './docs/assets/thumb'
@@ -27,16 +29,27 @@ THUMBNAIL_QUALITY = 60
 
 
 # --- Helper Functions ---
-def find_image_files(directory):
+def find_image_files(directory, posts):
     """Finds all image files in a given directory (not recursive)."""
-    image_files = []
-    try:
-        for file in os.listdir(directory):
-            if os.path.splitext(file)[1].lower() in IMAGE_EXTENSIONS:
-                image_files.append(os.path.join(directory, file))
-    except FileNotFoundError:
-        return []
-    return image_files
+    image_ids = []
+    for p in posts:
+        image_ids += p.get_img_ids()
+
+    # print(image_ids)
+
+    def is_valid_img(i):
+        print(f'{directory}/{i}')
+        return os.path.exists(f'{directory}/{i}')
+
+    return [f'{directory}/{i}' for i in image_ids if is_valid_img(i)]
+
+    # try:
+    #     # for file in os.listdir(directory):
+    #     #     if os.path.splitext(file)[1].lower() in IMAGE_EXTENSIONS:
+    #     #         image_files.append(os.path.join(directory, file))
+    # except FileNotFoundError:
+    #     return []
+    # return image_files
 
 
 def create_thumbnail(source_path, dest_path, dry_run=False):
@@ -77,14 +90,17 @@ def process_all_events(root_dir, output_dir, target_aspect_ratio, dry_run=False)
         print(f"Error: The root directory '{root_dir}' was not found.")
         return
 
-    for event_name in event_folders:
+    events_dict = utils.get_events_dict()
+    posts_by_event = utils.gather_posts_by_event([], events_dict)
+
+    for event_name, posts in posts_by_event.items():
         safe_event_name = "".join(c for c in event_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
         dest_path = os.path.join(output_dir, f"{safe_event_name}.jpg")
-        if os.path.exists(dest_path):
-            continue
+        # if os.path.exists(dest_path):
+        #     continue
 
         event_path = os.path.join(root_dir, event_name)
-        images_in_event = find_image_files(event_path)
+        images_in_event = find_image_files(event_path, posts)
 
         if not images_in_event:
             print(f"\nEvent '{event_name}': No images found, skipping.")
@@ -92,6 +108,10 @@ def process_all_events(root_dir, output_dir, target_aspect_ratio, dry_run=False)
 
         matching_images = []
         for img_path in images_in_event:
+            if os.path.basename(img_path) == 'thumb':
+                matching_images = [{'path': img_path, 'size': 999999}]
+                break
+
             try:
                 with Image.open(img_path) as img:
                     if img.height > 0:

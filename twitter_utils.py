@@ -69,6 +69,8 @@ def get_full_text(data):
     # full_text = re.sub(pattern, r'[\1](tags/\1)', full_text)
     full_text = re.sub(pattern, r'[\#\1](https://x.com/hashtag/\1)', full_text)
 
+    full_text = re.sub(r'(?<!\\)#', r'\\#', full_text)
+
     at_pattern = r'(?<![\w/])(@[\w\uAC00-\uD7A3]+)'
     full_text = re.sub(at_pattern, r'[\1](https://x.com/\1)', full_text)
 
@@ -181,14 +183,50 @@ class Post:
             return [m for m in self.media if m['type'] == 'photo']
         return []
 
+    def get_images_url(self):
+        return [m['media_url_https'] for m in self.get_images()]
+
+    def get_img_ids(self):
+        ps = []
+        for i, img in enumerate(self.get_images()):
+            image_url = img['media_url_https']
+            image_ext = get_img_ext(image_url)
+            image_id = f'{self.author}-{self.post_id}-{i}.{image_ext}'
+            ps.append(image_id)
+        return ps
+
     def get_videos(self):
         if self.media:
             return [m for m in self.media if m['type'] == 'video']  # return [result for m in self.media if (result := get_video_url(m)) is not None]
         return []
 
+    def get_videos_url(self):
+        return [m['media_url_https'] for m in self.get_videos()]
+
     def has_media(self):
         return len(self.get_images()) > 0 or len(self.get_videos()) > 0
 
+    def to_dict(self):
+        return {
+            'full_text': self.full_text,
+            'media': self.media,
+            'post_id': self.post_id,
+            'date': self.date.isoformat(),
+            'event_date': self.event_date,
+            'author': self.author,
+            'link': self.link,
+        }
+
+def make_post(d: dict):
+    p = object.__new__(Post)
+    p.full_text = d['full_text']
+    p.media = d['media']
+    p.post_id = d['post_id']
+    p.date = datetime.fromisoformat(d['date'])
+    p.event_date = d['event_date']
+    p.author = d['author']
+    p.link = d['link']
+    return p
 
 def download_file(url, file_path, date, timeout=10, skip_exists=True):
     if skip_exists and os.path.exists(file_path):
@@ -266,27 +304,17 @@ def gather_events(root_dir):
             out.append(event_date)
     return out
 
-def gather_posts(dirs, events_dict):
+def gather_all_posts(dirs):
     posts = []
     files = []
 
     for d in dirs:
         files += os.scandir(d)
 
-    with open('invalid.txt', 'r') as file:
-        ignored_auth = set(file.read().split())
-
-    ignored_auth |= get_invalid_authors()
-
     seen = set()
     for file in files:
         if file.is_file():
             event_date = file.name.split('.')[0]
-
-            if event_date not in events_dict:
-                print('WARNING skipping event not found in database', event_date)
-                continue
-
             with open(file.path, 'r', encoding='utf-8') as f:
                 json_data = json.load(f)
 
@@ -296,16 +324,46 @@ def gather_posts(dirs, events_dict):
 
                 post = Post(d)
                 post.event_date = event_date
-                if post.author in ignored_auth:
-                    # print('Ignored', post.author)
-                    continue
-
                 if post.post_id in seen:
-                    # print('FOUND DUPE', post.post_id)
                     continue
 
                 seen.add(post.post_id)
                 posts.append(post)
+    return posts
+
+def gather_all_posts_fast():
+    with open('raw/posts.json', 'r', encoding='utf-8') as f:
+        return [make_post(d) for d in json.load(f)]
+
+def gather_posts(dirs, events_dict, slow=False):
+    with open('invalid.txt', 'r') as file:
+        ignored_auth = set(file.read().split())
+
+    print('getting invalid auths')
+    ignored_auth |= get_invalid_authors()
+
+    def is_valid_post(p):
+        if p.event_date not in events_dict:
+            # print('WARNING skipping event not found in database', event_date)
+            return False
+
+        # if p.event_date != '220624':
+        #     return False
+
+        if p.event_date == '180124':
+            if p.date.year >= 2019:
+                return False
+
+        if p.author in ignored_auth:
+            # print('Ignored', post.author)
+            return False
+
+        return True
+
+    if slow:
+        posts = list(filter(is_valid_post, gather_all_posts(dirs)))
+    else:
+        posts = list(filter(is_valid_post, gather_all_posts_fast()))
 
     by_author = dict()
     for p in posts:
@@ -316,13 +374,13 @@ def gather_posts(dirs, events_dict):
     for a, ps in by_author.items():
         if len(ps) < 4:
             continue
-        print('Skip auth', a, len(ps))
+
         filtered_posts += ps
 
     return posts
 
-def gather_posts_by_event(dirs, events_dict):
-    posts = gather_posts(dirs, events_dict)
+def gather_posts_by_event(dirs, events_dict, slow=False):
+    posts = gather_posts(dirs, events_dict, slow)
     by_event = dict()
     for p in posts:
         by_event.setdefault(p.event_date, [])
