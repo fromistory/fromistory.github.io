@@ -71,54 +71,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     allCopyButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
-            // Prevent the default button action
             event.preventDefault();
 
             const currentButton = event.currentTarget;
             let linkToCopy = currentButton.dataset.copyLink;
 
-            // Handle 'self' keyword for current page URL
-            if (linkToCopy === 'self')
-            {
+            if (linkToCopy === 'self') {
                 linkToCopy = window.location.href;
             }
+            if (!linkToCopy) return;
 
-            if (!linkToCopy)
-            {
-                return;
-            }
-
-            try
-            {
-                // Use the modern Clipboard API
+            try {
                 await navigator.clipboard.writeText(linkToCopy);
+                // Delegate all tooltip logic to our new function
+                showTooltip(currentButton, "Copied link", 1000);
 
-                // Show a success notification instead of changing button text
-                showNotification('Copied to clipboard');
-
-            } catch (err)
-            {
+            } catch (err) {
                 console.error('Failed to copy text: ', err);
+                // You could even show an error tooltip!
+                showTooltip(currentButton, "Failed!", 1000);
             }
         });
     });
 
     Fancybox.bind("[data-fancybox]", {
         Carousel: {
+            Thumbs: {
+                showOnStart: false,
+            },
             Toolbar: {
                 display: {
                     left: [
                         "counter",
                     ],
                     middle: [
-                        "zoomIn",
-                        "zoomOut",
-                        "toggle1to1",
-                        "rotateCCW",
-                        "rotateCW",
                     ],
                     right: [
-                        "thumbs",
+                        "rotateCCW",
+                        "toggle1to1",
                         "download",
                         "close",
                     ],
@@ -130,43 +120,25 @@ document.addEventListener("DOMContentLoaded", function () {
     Fancybox.getDefaults().zoomEffect = false;
 });
 
-// --- Reusable Notification Function ---
-function showNotification(message, type = 'success') {
-    // Find the container, or create it if it doesn't exist
-    let container = document.getElementById('notification-container');
-    if (!container)
-    {
-        container = document.createElement('div');
-        container.id = 'notification-container';
-        document.body.appendChild(container);
+// A reusable function to show a temporary tooltip on an element
+function showTooltip(button, message, duration = 2000) {
+    const tooltip = button.querySelector('.tooltiptext');
+    if (!tooltip) {
+        console.warn("Button does not have a .tooltiptext child", button);
+        return;
     }
 
-    // Create the notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`; // e.g., 'notification success' or 'notification error'
+    // 🔥 Clear any existing timer associated with this specific button
+    if (button._tooltipTimer) {
+        clearTimeout(button._tooltipTimer);
+    }
 
-    // Set the content with the Material for MkDocs icon syntax
-    notification.innerHTML = `
-        <span>${message}</span>
-    `;
+    // Update tooltip content and show it
+    tooltip.textContent = message;
+    tooltip.classList.add("show");
 
-    // Add it to the container
-    container.appendChild(notification);
-
-    // Trigger the 'show' animation
-    // We use a tiny timeout to allow the browser to render the element before animating it
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-
-    // Set a timer to remove the notification
-    setTimeout(() => {
-        // Trigger the 'hide' animation (by removing 'show')
-        notification.classList.remove('show');
-
-        // Wait for the transition to finish before removing the element from the DOM
-        notification.addEventListener('transitionend', () => {
-            notification.remove();
-        });
-    }, 2500); // Notification stays for 3 seconds
+    // Start a fresh timer to hide the tooltip
+    button._tooltipTimer = setTimeout(() => {
+        tooltip.classList.remove("show");
+    }, duration);
 }

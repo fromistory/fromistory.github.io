@@ -138,14 +138,15 @@ def make_post_md(post: Post):
     # tags_md = '\n'.join(['  - ' + t.removeprefix('#') for t in tags])
 
     copy_button = f"""
-<button class="copy-link-button" data-copy-link="{post.link}">
-<span class="md-icon">:material-link:{{.big-emoji}}</span>
+<button class="copy-link-button tooltip" data-copy-link="{post.link}">
+<span class="md-icon">:octicons-share-24:{{.big-emoji}}</span>
+<span class="tooltiptext">Copied to clipboard</span>
 </button>
 """
 
     post_link = f"""
 <div class="post-link" style="text-align: right;" markdown="1">
-<a href="{post.link}" style="text-align: right;">:material-twitter:{{.big-emoji}}</a>
+<a href="{post.link}" target="_blank" rel="noopener noreferrer">:material-twitter:{{.big-emoji}}</a>
 </div>
 """
 
@@ -452,8 +453,8 @@ def main():
     events_dict = get_events_dict()
 
     # these are folders!
-    # posts_by_event = gather_posts_by_event(['json-test'], events_dict)
-    posts_by_event = gather_posts_by_event(['json2', 'json'], events_dict)
+    posts_by_event = gather_posts_by_event(['json-test'], events_dict)
+    # posts_by_event = gather_posts_by_event(['json2', 'json'], events_dict)
 
     print(f'Generating {len(posts_by_event)} events')
 

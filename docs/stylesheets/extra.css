@@ -303,32 +303,58 @@ iframe {
   align-items: flex-end;
 }
 
-/* Individual notification style */
-.notification {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  padding: 16px 18px;
+/* Container for the button/element that will trigger the tooltip */
+.tooltip {
+  position: relative; /* Establishes the positioning context for the tooltip */
+  display: inline-block;
+}
+
+/* The tooltip bubble itself */
+.tooltip .tooltiptext {
+  /* ✨ IMPROVEMENT 1: Modern Centering */
+  position: absolute;
+  left: 50%;
+  bottom: 125%; /* Slightly adjusted for a better pop-up feel */
+  transform: translate(-50%); /* Centers the element regardless of its width */
+
+  /* Visual Styling */
+  /*width: 120px;*/
+
+  max-width: 220px;       /* Set an upper limit for the width */
+  min-width: 80px;        /* Optional: Set a minimum width for very short text */
+  white-space: nowrap;    /* Allow text to wrap onto multiple lines */
+
+  background-color: var(--md-primary-fg-color);
+  color: #fff;
+  text-align: center;
+  padding: 4px 16px; /* Slightly more padding for better spacing */
   border-radius: 6px;
-  color: var(--md-primary-bg-color); /* White/light text */
-  background-color: var(--md-primary-fg-color); /* Theme's primary color */
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 1);
-  opacity: 0; /* Start hidden */
-  transform: translateX(100%); /* Start off-screen to the right */
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  min-width: 200px;
-  font-size: 2em; /* Make the icon a bit larger */
+  /*box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); !* ✨ IMPROVEMENT 3: Softer shadow *!*/
+  z-index: 10; /* Use a higher z-index just in case */
+
+  /* ✨ IMPROVEMENT 2: Smooth Transitions */
+  opacity: 0;
+  visibility: hidden; /* Hide it completely by default */
+  will-change: opacity, transform; /* ✨ IMPROVEMENT 5: Performance hint */
 }
 
-/* Style for the icon inside the notification */
-.notification .md-icon {
-  font-size: 1.5em; /* Make the icon a bit larger */
-  margin: 0;
+/* The little arrow pointing to the element */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Position it at the bottom of the tooltip */
+  left: 50%;
+  transform: translateX(-50%); /* ✨ IMPROVEMENT 1: Also center the arrow */
+
+  border-width: 5px;
+  border-style: solid;
+  /* ✨ IMPROVEMENT 4: Use the same color as the background */
+  border-color: var(--md-primary-fg-color) transparent transparent transparent;
 }
 
-/* State for when the notification is visible */
-.notification.show {
+/* The class your JavaScript adds to show the tooltip */
+.tooltiptext.show {
+  visibility: visible;
   opacity: 1;
-  transform: translateX(0);
+  transform: translate(-50%, -0.4rem); /* Move it to its final position */
 }
