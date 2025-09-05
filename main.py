@@ -317,6 +317,9 @@ hide:
                 out += f'<div class="author-container" markdown="1">\n'
                 out += f'## {auth}\n'
 
+                if ps:
+                    out += '\n---\n'
+
                 for p in ps:
                     if len(p.get_images()) == 0 and len(p.get_videos()) == 0:
                         continue
@@ -326,7 +329,7 @@ hide:
 
                     post_md = make_post_md(p)
                     out += post_md
-                    out += '\n'
+                    out += '\n---\n'
 
                 global gallery_index
                 gallery_index += 1
