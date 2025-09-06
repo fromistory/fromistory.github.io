@@ -12,7 +12,7 @@ tr {
 }
 
 .md-typeset img {
-  max-height: 720px;
+  max-height: 1080px;
   border-radius: 8px; /* Add rounded corners */
 }
 
@@ -40,6 +40,17 @@ tr {
   margin: 0 auto;
   margin-bottom: 2rem;
   padding: 1rem 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .author-container {
+    /* A little more vertical space than horizontal */
+    padding: 1rem 0.75rem;
+  }
+
+  .md-typeset hr {
+    margin: 0.75rem 0;
+  }
 }
 
 .author-container h2 {
@@ -223,14 +234,14 @@ iframe {
   width: auto;
 }
 
-
 .grid h1 {
   margin: 0;
 }
 
-/* Landscape images span 2 columns */
-.grid-item.landscape {
-  grid-column: span 2;
+@media (min-width: 600px) {
+    .grid-item.landscape {
+      grid-column: span 2;
+    }
 }
 
 .grid-item p {

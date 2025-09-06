@@ -11,12 +11,13 @@ theme:
     - navigation.tracking
     - navigation.sections
     - navigation.indexes
-#    - navigation.top
-    - navigation.hide
+    - navigation.top
     - navigation.tabs
-    - navigation.tabs.sticky
     - navigation.path
     - navigation.prune
+    - navigation.expand
+    - navigation.sections
+    - toc.follow
   font:
     text: Open Sans
     code: JetBrains Mono
