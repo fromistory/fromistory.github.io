@@ -75,7 +75,7 @@ def make_video_md(url, thumb_path, content_type):
 
     return f"""
 <div class="video-wrapper" markdown="1">
-<video controls="controls" preload="none" poster="{thumb_path}">
+<video controls="controls" preload="none" poster="{thumb_path}" referrerpolicy="same-origin">
 <source src="{url}" type="{content_type}">
 </video>
 </div>
@@ -186,6 +186,7 @@ def make_youtube_md(url):
 <div class="youtube-wrapper" markdown="1">
 <iframe 
     src="{embed_url}"
+    referrerpolicy="strict-origin-when-cross-origin"
     frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
     allowfullscreen>
