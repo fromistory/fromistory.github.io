@@ -8,6 +8,7 @@ import os
 import time
 import re
 import random
+import jmespath
 
 import filedate
 import requests
@@ -95,6 +96,15 @@ def get_urls(data):
 
     return None
 
+def get_urls_legacy(legacy):
+    out_urls = legacy['entities'].get('urls')
+    if out_urls:
+        return out_urls
+    elif url := legacy['entities'].get('url'):
+        return url.get('urls')
+
+    return None
+
 
 def get_result(data):
     # if is_retweet(data):
@@ -145,6 +155,15 @@ def get_core(data):
 def get_author(data):
     return get_core(data)['user_results']['result']['core']['screen_name']
 
+def get_replies(data):
+    return get_legacy(data)['reply_count']
+
+def get_reply_to(data):
+    reply_to = get_legacy(data).get('in_reply_to_status_id_str')
+    # if reply_to:
+    #     print('Found reply to', reply_to)
+    return reply_to
+
 def get_video_url(media):
     out_url = None
     if video_info := media.get('video_info'):
@@ -177,6 +196,8 @@ class Post:
         self.event_date = None
         self.author = get_author(data)
         self.link = f'https://x.com/{self.author}/status/{self.post_id}'
+        self.replies = get_replies(data)
+        self.reply_to = get_reply_to(data)
 
     def get_images(self):
         if self.media:
@@ -211,11 +232,87 @@ class Post:
             'full_text': self.full_text,
             'media': self.media,
             'post_id': self.post_id,
-            'date': self.date.isoformat(),
+            'date': self.date.isoformat() if self.date else None,
             'event_date': self.event_date,
             'author': self.author,
             'link': self.link,
+            'replies': self.replies,
+            'reply_to': self.reply_to,
         }
+
+    def clean_fulltext(self, full_text, urls, media):
+        for m in media:
+            full_text = full_text.replace(m['url'], '')
+
+        if urls:
+            for url in urls:
+                full_text = full_text.replace(url['url'], f'[{url['expanded_url']}]({url['expanded_url']})')
+
+        pattern = r'(?<![\w/])#[\u20DD]*([\w\uAC00-\uD7A3]+)'
+        full_text = re.sub(pattern, r'[\#\1](https://x.com/hashtag/\1)', full_text)
+
+        full_text = re.sub(r'(?<!\\)#', r'\\#', full_text)
+
+        at_pattern = r'(?<![\w/])(@[\w\uAC00-\uD7A3]+)'
+        full_text = re.sub(at_pattern, r'[\1](https://x.com/\1)', full_text)
+
+        return full_text.replace('\n', '<br>\n').strip()
+
+def make_post_from_legacy(d: dict, event_date=None):
+    print(d)
+    p = object.__new__(Post)
+    p.data = d
+    p.full_text = d['full_text']
+    p.full_text = get_full_text(d)
+    p.media = d.get('extended_entities', {}).get('media', [])
+    p.post_id = d.get('id_str')
+    p.date = datetime.strptime(d.get('created_at'), "%a %b %d %H:%M:%S %z %Y")
+    p.author = d.get('author')
+    p.event_date = event_date
+    p.link = d.get('link')
+    p.replies = d.get('replies')
+    p.reply_to = d.get('reply_to')
+    return p
+
+def make_post_from_result(d: dict, event_date):
+    # print(d)
+    p = object.__new__(Post)
+    # print(d)
+
+    tweet_ids = d.get('edit_control', {}).get('edit_tweet_ids', {})
+
+    # This means there is a new version of the post (just ignore it for now)
+    # if not tweet_ids:
+    #     tweet_ids = d.get('edit_control', {}).get('edit_control_initial', {}).get('edit_tweet_ids', {})
+    #     print('Found new version of post', tweet_ids)
+
+    if not tweet_ids:
+        print('Failed to find post id!')
+        print(d)
+        return None
+
+    p.post_id = tweet_ids[0]
+    # p.post_id = d['edit_control']['edit_tweet_ids'][0]
+
+    l = d['legacy']
+
+    p.data = d
+    p.full_text = l['full_text']
+
+    user = d['core']['user_results']['result']['core']
+    p.author = user['screen_name']
+
+    p.media = l.get('extended_entities', {}).get('media', [])
+
+    p.full_text = p.clean_fulltext(p.full_text, get_urls_legacy(l), p.media)
+
+    # p.post_id = d.get('id_str')
+    p.date = datetime.strptime(l.get('created_at'), "%a %b %d %H:%M:%S %z %Y")
+    p.event_date = event_date
+    p.link = f'https://x.com/{p.author}/status/{p.post_id}'
+    p.replies = l.get('reply_count')
+    p.reply_to = l.get('in_reply_to_status_id_str')
+    return p
 
 def make_post(d: dict):
     p = object.__new__(Post)
@@ -226,6 +323,8 @@ def make_post(d: dict):
     p.event_date = d['event_date']
     p.author = d['author']
     p.link = d['link']
+    p.replies = d['replies']
+    p.reply_to = d['reply_to']
     return p
 
 def download_file(url, file_path, date, timeout=10, skip_exists=True):
@@ -331,9 +430,47 @@ def gather_all_posts(dirs):
                 posts.append(post)
     return posts
 
-def gather_all_posts_fast():
-    with open('raw/posts.json', 'r', encoding='utf-8') as f:
-        return [make_post(d) for d in json.load(f)]
+def gather_all_posts_fast(skip_replies=False) -> list[Post]:
+    post_ids = dict()
+    # out_posts = []
+    all_data = []
+
+    if not skip_replies:
+        with open('json/parsed/tweets.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            print('tweets', len(data))
+            all_data += data
+            # for d in data:
+            #     print(d)
+
+    with open('json/parsed/posts.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        print('posts', len(data))
+        all_data += data
+
+    if not skip_replies:
+        with open('json/parsed/replies.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            print('tweets', len(data))
+            all_data += data
+
+    for d in all_data:
+        post = make_post(d)
+        if curr_post := post_ids.get(post.post_id):
+            # if len(post.media) > 0:
+            #     post_ids[post.post_id] = post
+
+            if len(post.media) > len(curr_post.media):
+                post_ids[post.post_id] = post
+                print('\nUsing new values?')
+                print(post.to_dict())
+        else:
+            post_ids[post.post_id] = post
+
+        # out_posts.append(post)
+
+    print('total', len(post_ids), len(all_data))
+    return list(post_ids.values())
 
 def gather_posts(dirs, events_dict, slow=False):
     with open('invalid.txt', 'r') as file:
@@ -489,7 +626,7 @@ def get_invalid_authors():
             invalid_auth.add(r['Name'])
     return invalid_auth
 
-def get_events_dict():
+def get_events_dict(skip_ignored=True):
     auth_sheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRPT5wfb1Eh7r7RqGXJNtXeUhbAlokMvIiZdB6PdAQZoRb4JkwCy5Lw4XylvAwnsr7lmVbqPdPrVsMO/pub?gid=1556948653&single=true&output=tsv'
 
     df = pd.read_csv(auth_sheet, sep='\t', header=0)
@@ -498,7 +635,7 @@ def get_events_dict():
     event_dict = dict()
 
     for r in df.to_dict(orient="records"):
-        if r['Ignored']:
+        if r['Ignored'] and skip_ignored:
             print('Skipping event ', r['Eng Name'])
             continue
 

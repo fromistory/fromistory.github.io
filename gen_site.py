@@ -18,7 +18,6 @@ era_dates = [
     [240812, 'Supersonic'],
     [230518, 'Unlock My World'],
     [220608, 'from our Memento Box'],
-    [200911, 'My Little Society'],
     [220103, 'Midnight Guest'],
     [210828, 'Talk & Talk'],
     [210507, '9 Way Ticket'],
@@ -31,6 +30,18 @@ era_dates = [
     [170629, 'Idol School'],
     [0, 'Pre-Debut'],
 ]
+
+member_dict = {
+    'SR': '이새롬',
+    'HY': '송하영',
+    'GY': '장규리',
+    'JW': '박지원',
+    'JS': '노지선',
+    'SY': '이서연',
+    'CY': '이채영',
+    'NG': '이나경',
+    'JH': '백지헌'
+}
 
 gallery_index = 0
 
@@ -70,6 +81,18 @@ def make_video_md(url, thumb_path, content_type):
 #   <img src="{thumb_path}" alt="Missing Thumbnail" class="skip-lightbox video-thumb" loading="lazy"/>
 #   </div>
 # </a>
+# </div>
+# """
+
+#     return f"""
+# <div class="video-wrapper">
+#     <video
+#         controls="controls"
+#         preload="none"
+#         poster="{thumb_path}"
+#         referrerpolicy="same-origin"
+#         src="{url}">
+#     </video>
 # </div>
 # """
 
@@ -232,6 +255,11 @@ def make_event(event_date, posts: list[Post], events_dict, yt_data):
                 # print('Skipping retweet', event_date, p.author, a)
                 # print(p.full_text, '\n')
                 return False
+
+        # print(p.event_date)
+        # if int(p.event_date) != 231013:
+        #     return False
+
         return True
 
     posts = [p for p in posts if is_valid_post(p)]
@@ -261,6 +289,11 @@ hide:
         out += f'**{event_name}**\n\n'
 
         twi_search = e['Twitter']
+        if members := e.get('Member'):
+            kr_members = [member_dict[m.strip()] for m in members.split(',')]
+            if len(kr_members) == 1:
+                twi_search = f'https://x.com/search?q="{event_date}"%20OR%20"{event_date}"%20%23{kr_members[0]}'
+
         if alt := e.get('Alt 1'):
             print('Found alt?', alt)
             if 'x.com/search' in alt:
@@ -278,16 +311,24 @@ hide:
 
         out += f'* [Twitter search]({twi_search}) | [YouTube search]({e['YouTube']})\n'
 
-        cam_1 = e.get('Cam 1')
-        cam_2 = e.get('Cam 2')
-        if cam_1 or cam_2:
-            out += '<div class="grid" markdown="1">'
-            if cam_1:
-                out += make_youtube_md(cam_1) + '\n'
+        cams = []
 
-            if cam_2:
-                out += make_youtube_md(cam_2) + '\n'
-            out += '</div>'
+        cams = [e.get('Cam 1'), e.get('Cam 2')]
+        for cam_text in cams:
+            if cam_text:
+                cam_urls = cam_text.split('\n')
+                for url in cam_urls:
+                    out += '<div class="grid" markdown="1">'
+                    out += make_youtube_md(url) + '\n'
+                    out += '</div>'
+        # if cam_1 or cam_2:
+        #     out += '<div class="grid" markdown="1">'
+        #     if cam_1:
+        #         out += make_youtube_md(cam_1) + '\n'
+        #
+        #     if cam_2:
+        #         out += make_youtube_md(cam_2) + '\n'
+        #     out += '</div>'
 
         out += '\n---\n\n'
         # out += f'# {e['Eng Name']}'
@@ -372,7 +413,7 @@ search:
             if event_date >= date:
                 event_era = era
                 break
-        # print(e, event_era, event_date)
+        print(e, event_era, event_date)
 
         if current_era is not event_era:
             if current_era:
@@ -433,33 +474,35 @@ def get_date_name(date, events_dict):
         return 'Unknown Event', 'Unknown Event'
 
 def get_yt_events():
-    with open('./raw/youtube_events.json', 'r', encoding='utf-8') as f:
+    with open('json/parsed/youtube_events.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    def is_valid_yt(r):
-        title = r['title']
-        # names = ['fromis', '프로미스나인', '프나', '프미나']
-        banned_terms = ['치어리더']
+    return data
 
-        ignored_authors = ['ThePingiiz', 'parrotsubs', 'papago_9']
-        if r['author'].lower() in ignored_authors:
-            return False
-
-        if r['length'] < 20:
-            return False
-
-        for b in banned_terms:
-            if b in title:
-                print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
-                return False
-
-        # for n in names:
-        #     if n in title:
-        #         return True
-
-        return True
-
-    return {k: [x for x in arr if is_valid_yt(x)] for k, arr in data.items()}
+    # def is_valid_yt(r):
+    #     title = r['title']
+    #     # names = ['fromis', '프로미스나인', '프나', '프미나']
+    #     banned_terms = ['치어리더', '버스킹']
+    #
+    #     ignored_authors = ['ThePingiiz', 'parrotsubs', 'papago_9']
+    #     if r['author'].lower() in ignored_authors:
+    #         return False
+    #
+    #     if r['length'] < 20:
+    #         return False
+    #
+    #     for b in banned_terms:
+    #         if b in title:
+    #             print(f'Skipping yt video {b}', f'https://www.youtube.com/watch?v={r['id']}, {title}')
+    #             return False
+    #
+    #     # for n in names:
+    #     #     if n in title:
+    #     #         return True
+    #
+    #     return True
+    #
+    # return {k: [x for x in arr if is_valid_yt(x)] for k, arr in data.items()}
 
 def main():
     yt_data = get_yt_events()

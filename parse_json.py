@@ -6,27 +6,30 @@ import json
 from collections import defaultdict
 
 import twitter_utils as utils
-from twitter_utils import Post
+from twitter_utils import Post, gather_all_posts_fast
 
-def main():
-    with open('json/180710.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+DOWNLOAD_IMAGES = True
+DOWNLOAD_VIDEOS = False
 
-    print(len(data))
-    for d in data:
-        if d['content']['__typename'] != 'TimelineTimelineItem':
-            # print(d)
-            continue
-
-        post = Post(d)
-        if len(post.media):
-            print(d)
-            print(post.post_id, post.link)
-
-        # print('\n')
+# def main():
+#     with open('json/events/180710.json', 'r', encoding='utf-8') as f:
+#         data = json.load(f)
+#
+#     print(len(data))
+#     for d in data:
+#         if d['content']['__typename'] != 'TimelineTimelineItem':
+#             # print(d)
+#             continue
+#
+#         post = Post(d)
+#         if len(post.media):
+#             print(d)
+#             print(post.post_id, post.link)
+#
+#         # print('\n')
 
 def download_json():
-    files = os.scandir('json')
+    files = os.scandir('json/events')
     for file in files:
         if file.is_file():
             event_date = file.name.split('.')[0]
@@ -197,8 +200,8 @@ def download_posts(posts, invalid_auth):
         # Apply initial filters
         if post.author in invalid_auth:
             continue
-        if post.event_date not in post.full_text:
-            continue
+        # if post.event_date not in post.full_text:
+        #     continue
         if not post.get_images():
             continue
 
@@ -213,66 +216,165 @@ def download_posts(posts, invalid_auth):
         # Assuming post.date is a comparable attribute (like a datetime object or ISO string)
         posts_by_date[event_date].sort(key=lambda p: p.date, reverse=True)
 
-    # --- 4. Pre-calculate total images to download for progress tracking ---
-    print("Calculating remaining images to download...")
-    images_to_download_queue = []
-    for event_date in sorted_event_dates:
-        for post in posts_by_date[event_date]:
-            for i, img in enumerate(post.get_images()):
-                image_url = img['media_url_https']
-                image_ext = utils.get_img_ext(image_url)
-                final_image_url = f"{image_url}?format={image_ext}&name=orig"
+    images_to_download = []
 
-                if final_image_url not in downloaded_set and final_image_url not in failed_ids:
-                    out_dir = f'media/events/{post.event_date}'
-                    image_path = f'{out_dir}/{post.author}-{post.post_id}-{i}.{image_ext}'
+    if DOWNLOAD_IMAGES:
+        # --- 4. Pre-calculate total images to download for progress tracking ---
+        print("Calculating remaining images to download...")
+        for event_date in sorted_event_dates:
+            for post in posts_by_date[event_date]:
+                for i, img in enumerate(post.get_images()):
+                    image_url = img['media_url_https']
+                    image_ext = utils.get_img_ext(image_url)
+                    final_image_url = f"{image_url}?format={image_ext}&name=orig"
 
-                    # Add all necessary info to a queue
-                    images_to_download_queue.append({
-                        'url': final_image_url,
-                        'path': image_path,
-                        'post_date': post.date,
-                        'event_date': post.event_date,
-                        'author': post.author,
-                        'post_id': post.post_id,
-                        'index': i
-                    })
+                    if final_image_url not in downloaded_set and final_image_url not in failed_ids:
+                        out_dir = f'media/events/{post.event_date}'
+                        image_path = f'{out_dir}/{post.author}-{post.post_id}-{i}.{image_ext}'
 
-    total_remaining = len(images_to_download_queue)
-    if total_remaining == 0:
-        print("No new images to download.")
-        return
+                        if os.path.exists(image_path):
+                            continue
 
-    print(f"Found {total_remaining} new images to download.\n")
+                        # Add all necessary info to a queue
+                        images_to_download.append({
+                            'url': final_image_url,
+                            'path': image_path,
+                            'post_date': post.date,
+                            'event_date': post.event_date,
+                            'author': post.author,
+                            'post_id': post.post_id,
+                            'index': i
+                        })
 
-    # --- 5. Process the download queue ---
-    for i, image_data in enumerate(images_to_download_queue):
+    if DOWNLOAD_VIDEOS:
+        # VIDEOS
+        print("Calculating remaining videos to download...")
+        # images_to_download = []
+        for event_date in sorted_event_dates:
+            for post in posts_by_date[event_date]:
+                for i, vid in enumerate(post.get_videos()):
+                    print(vid)
 
-        current_count = i + 1
-        image_url = image_data['url']
-        image_path = image_data['path']
-        out_dir = os.path.dirname(image_path)  # Get directory from the path
+                    if 'yout' in post.full_text:
+                        print('Found youtube video preview', post.link)
+                        continue
 
-        # Create directory if it doesn't exist
-        os.makedirs(out_dir, exist_ok=True)
+                    vid_url = utils.get_video_url(vid)
 
-        print(f"[{current_count}/{total_remaining}] Downloading image for post {image_data['post_id']}")
-        print(f"  URL: {image_url}")
-        print(f"  Path: {image_path}")
+                    if vid_url and vid_url not in downloaded_set and vid_url not in failed_ids:
+                        out_dir = f'media/events/{post.event_date}'
+                        video_ext = utils.get_video_ext(vid_url)
+                        vid_path = f'{out_dir}/{post.author}-{post.post_id}-{i}.{video_ext}'
 
-        result = utils.download_file(image_url, image_path, image_data['post_date'])
+                        if os.path.exists(vid_path):
+                            continue
 
-        if result != -1:
-            log_downloaded_url(image_url)
-        else:
-            print(f"  -> FAILED to download. Logging to failed.txt")
-            with open('failed.txt', 'a', encoding='utf-8') as f:
-                f.write(
-                    f"{image_data['event_date']}\t{image_data['author']}\t{image_data['post_id']}\t{image_data['index']}\t{image_url}\n")
+                        # Add all necessary info to a queue
+                        images_to_download.append({
+                            'url': vid_url,
+                            'path': vid_path,
+                            'post_date': post.date,
+                            'event_date': post.event_date,
+                            'author': post.author,
+                            'post_id': post.post_id,
+                            'index': i
+                        })
 
-        # Add a delay, especially if the download was fast or failed
-        if i < total_remaining - 1:  # No need to sleep after the last one
-            time.sleep(random.randrange(5, 12))
+    total_remaining = len(images_to_download)
+    if total_remaining > 0:
+        print(f"Found {total_remaining} new images to download.\n")
+
+        log_test = dict()
+        for item in images_to_download:
+            log_test.setdefault(item['event_date'], 0)
+            log_test[item['event_date']] += 1
+
+        for item, val in log_test.items():
+            print(item, ': ', val)
+
+        # --- 5. Process the download queue ---
+        for i, image_data in enumerate(images_to_download):
+            current_count = i + 1
+            image_url = image_data['url']
+            image_path = image_data['path']
+            out_dir = os.path.dirname(image_path)  # Get directory from the path
+
+            # Create directory if it doesn't exist
+            os.makedirs(out_dir, exist_ok=True)
+
+            if os.path.exists(image_path):
+                continue
+
+            print(f"[{current_count}/{total_remaining}] Downloading image for post {image_data['post_id']}")
+            print(f"  URL: {image_url}")
+            print(f"  Path: {image_path}")
+            # continue
+
+            result = utils.download_file(image_url, image_path, image_data['post_date'])
+
+            if result != -1:
+                log_downloaded_url(image_url)
+            else:
+                print(f"  -> FAILED to download. Logging to failed.txt")
+                with open('failed.txt', 'a', encoding='utf-8') as f:
+                    f.write(
+                        f"{image_data['event_date']}\t{image_data['author']}\t{image_data['post_id']}\t{image_data['index']}\t{image_url}\n")
+
+            # Add a delay, especially if the download was fast or failed
+            if i < total_remaining - 1:  # No need to sleep after the last one
+                time.sleep(random.randrange(5, 12))
+
+                # image_url = img['media_url_https']
+                # image_ext = utils.get_img_ext(image_url)
+                # final_image_url = f"{image_url}?format={image_ext}&name=orig"
+                #
+                # if final_image_url not in downloaded_set and final_image_url not in failed_ids:
+                #     out_dir = f'media/events/{post.event_date}'
+                #     image_path = f'{out_dir}/{post.author}-{post.post_id}-{i}.{image_ext}'
+                #
+                #     # Add all necessary info to a queue
+                #     videos_to_dl.append({
+                #         'url': final_image_url,
+                #         'path': image_path,
+                #         'post_date': post.date,
+                #         'event_date': post.event_date,
+                #         'author': post.author,
+                #         'post_id': post.post_id,
+                #         'index': i
+                #     })
+
+        # total_remaining = len(videos_to_dl)
+        # if total_remaining > 0:
+        #     print(f"Found {total_remaining} new images to download.\n")
+        #
+        #     # --- 5. Process the download queue ---
+        #     for i, image_data in enumerate(videos_to_dl):
+        #
+        #         current_count = i + 1
+        #         image_url = image_data['url']
+        #         image_path = image_data['path']
+        #         out_dir = os.path.dirname(image_path)  # Get directory from the path
+        #
+        #         # Create directory if it doesn't exist
+        #         os.makedirs(out_dir, exist_ok=True)
+        #
+        #         print(f"[{current_count}/{total_remaining}] Downloading image for post {image_data['post_id']}")
+        #         print(f"  URL: {image_url}")
+        #         print(f"  Path: {image_path}")
+        #
+        #         result = utils.download_file(image_url, image_path, image_data['post_date'])
+        #
+        #         if result != -1:
+        #             log_downloaded_url(image_url)
+        #         else:
+        #             print(f"  -> FAILED to download. Logging to failed.txt")
+        #             with open('failed.txt', 'a', encoding='utf-8') as f:
+        #                 f.write(
+        #                     f"{image_data['event_date']}\t{image_data['author']}\t{image_data['post_id']}\t{image_data['index']}\t{image_url}\n")
+        #
+        #         # Add a delay, especially if the download was fast or failed
+        #         if i < total_remaining - 1:  # No need to sleep after the last one
+        #             time.sleep(random.randrange(5, 12))
 
 def get_failed_ids():
     failed = set()
@@ -300,16 +402,18 @@ def main():
     #     if p.author == 'PromisePollen':
     #         print(p.link, '\t', p.full_text)
 
-    tweets_1 = get_tweets('json')
-    print(len(tweets_1))
-    tweets_2 = get_tweets('json2')
-    print(len(tweets_2))
+    # tweets_1 = get_tweets('json')
+    # print(len(tweets_1))
+    # tweets_2 = get_tweets('json2')
+    # print(len(tweets_2))
+    # #
+    # combined = tweets_2 | tweets_1
+    # print(len(combined))
     #
-    combined = tweets_2 | tweets_1
-    print(len(combined))
-
-    posts = combined.values()
+    # posts = combined.values()
     # log_authors2(posts)
+
+    posts = gather_all_posts_fast()
 
     download_posts(posts, invalid_auth)
 

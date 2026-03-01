@@ -8,7 +8,7 @@
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url) {
         this.addEventListener("load", function() {
-            console.log(url)
+//            console.log(url)
 
             let currentEntries = [];
             if (url.includes('SearchTimeline?')) {
@@ -62,15 +62,35 @@
 				let parsed = JSON.parse(this.response);
 				console.log(parsed)
 
-
                 let instructions = parsed['data']['user']['result']['timeline']['timeline']['instructions']
                 for (let i of instructions)
                 {
+//                    'TimelineAddToModule'
+                    if (i['type'] === 'TimelineAddToModule')
+                    {
+                        console.log(i);
+                        items = i['moduleItems']
+                        currentEntries = currentEntries.concat(items);
+//                        let entries = i['entries']
+//                        currentEntries = currentEntries.concat(entries);
+//                        console.log('SearchTimeline', entries.length, my_data.data.length);
+//                        console.log(entries);
+                    }
+                }
+            }
+            else if (url.includes('TweetDetail?'))
+            {
+                console.log(url);
+                let parsed = JSON.parse(this.response);
+                let instructions = parsed['data']['threaded_conversation_with_injections_v2']['instructions']
+                for (let i of instructions)
+                {
+//                    'TimelineAddToModule'
                     if (i['type'] === 'TimelineAddEntries')
                     {
-                        let entries = i['entries']
-                        currentEntries = currentEntries.concat(entries);
-//                        console.log('SearchTimeline', entries.length, my_data.data.length);
+                        console.log(i);
+                        items = i['entries']
+                        currentEntries = currentEntries.concat(items);
                     }
                 }
             }

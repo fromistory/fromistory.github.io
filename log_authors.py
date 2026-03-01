@@ -3,7 +3,7 @@ import os
 import json
 
 import twitter_utils as utils
-from twitter_utils import Post, get_authors
+from twitter_utils import Post, get_authors, gather_all_posts_fast
 
 
 def get_tweets(folder):
@@ -101,11 +101,10 @@ def log_authors2(posts):
     for name, count in new_tuples:
         if count >= 5:
             download = ''
+            deleted = ''
+
             if d := auth_dict.get(name):
                 download = d.get('Download', '')
-
-            deleted = ''
-            if d := auth_dict.get(name):
                 deleted = d.get('Deleted', '')
 
             row = f'{name}\t{count}\t{total_authors[name]}\t{earliest[name].strftime("%Y-%m-%d")}\t{latest[name].strftime("%Y-%m-%d")}\t{download}\t{deleted}'
@@ -117,13 +116,14 @@ def log_authors2(posts):
 
 
 if __name__ == '__main__':
-    tweets_1 = get_tweets('json')
-    print(len(tweets_1))
-    tweets_2 = get_tweets('json2')
-    print(len(tweets_2))
+    # tweets_1 = get_tweets('json')
+    # print(len(tweets_1))
+    # tweets_2 = get_tweets('json2')
+    # print(len(tweets_2))
+    # #
+    # combined = tweets_2 | tweets_1
+    # print(len(combined))
     #
-    combined = tweets_2 | tweets_1
-    print(len(combined))
-
-    posts = combined.values()
+    # posts = combined.values()
+    posts = gather_all_posts_fast()
     log_authors2(posts)

@@ -8,8 +8,6 @@ from selenium.webdriver.common.options import PageLoadStrategy
 import json
 import time
 
-import settings
-
 from selenium import webdriver
 from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.common.by import By
@@ -80,13 +78,11 @@ def search_twitter(driver, query):
 def parse_search(driver, out_name, search):
     found_tweets = {}  # Use a dictionary with tweet ID as key to store unique tweets
 
-    success = search_twitter(driver, search)
+    search_twitter(driver, search)
+
     time.sleep(SCROLL_PAUSE_TIME)  # Allow initial content to load
 
-    last_scroll_height = driver.execute_script("return document.body.scrollHeight")
-
-    # Inside your main scrolling loop:
-    # ... (scroll down logic) ...
+    driver.execute_script("return document.body.scrollHeight")
     time.sleep(SCROLL_PAUSE_TIME)
 
     with open("scroll.js", "r") as f:
@@ -101,16 +97,17 @@ def parse_search(driver, out_name, search):
         if finished:
             break
 
+        # print(data)
+
         if last_size != len(data):
             print('NEW DATA', len(data))
             last_size = len(data)
 
         time.sleep(1)
 
-    with open(f'json/events/{out_name}.json', 'w', encoding='utf-8') as out_file:
+    with open(f'json/accounts/{out_name}.json', 'w', encoding='utf-8') as out_file:
         data = driver.execute_script("return window.interceptedTwitterData;")
         json.dump(data, out_file, indent=2)
-    # print(json.dumps(data))
 
 def get_tsv():
     url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRPT5wfb1Eh7r7RqGXJNtXeUhbAlokMvIiZdB6PdAQZoRb4JkwCy5Lw4XylvAwnsr7lmVbqPdPrVsMO/pub?gid=1556948653&single=true&output=tsv'
@@ -144,61 +141,16 @@ member_dict = {
     'JH': '백지헌'
 }
 
-def generate_json():
-    print('Get rows')
-    rows = get_tsv()
-    # count = 0
-
-    print('Setup Driver')
+def search_account(acc):
     driver = setup_driver()
 
-    print('Begin Search')
-    for r in rows:
-        date = r['Date']
+    link = f'https://x.com/{acc}/media'
+    parse_search(driver, acc, link)
 
-        if len(date) == 0:
-            continue
-
-        if int(date) > settings.DATE_CUTOFF:
-            continue
-
-        # continue
-
-
-        # link = f'https://x.com/search?q=%22{date}%22%20%23fromis_9'
-        # print('Parsing', date)
-
-        alt_searches = []
-        member = r.get('Member', '')
-        if member != '':
-            members = member.split(',')
-            for m in members:
-                name = m.strip()
-                link = f'https://x.com/search?q="{date}"%20OR%20"{date}"%20%23{member_dict[name]}&f=live'
-                file_name = f'{date}.{m}'
-                run_search(driver, link, file_name)
-                # alt_searches.append((alt, m))
-                # time.sleep(60)
-        else:
-            run_search(driver, r['Twitter'] + '&f=live', date)
-            # time.sleep(60)
-
-        # if count >= 100:
-        #     break
-    print('End Search')
     driver.quit()
-
-    # driver.quit()
-def run_search(driver, link, file_name):
-    if os.path.exists(f'json/events/{file_name}.json'):
-        return
-
-    print('Parsing', file_name, link)
-    parse_search(driver, file_name, link)
-    time.sleep(60)
-
 
 # --- Main Script ---
 if __name__ == "__main__":
-    # print('Starting')
-    generate_json()
+    # search_account('byfromis_9')
+    search_account('eoeowlgnlqks')
+    # search_account('chaengmorning')

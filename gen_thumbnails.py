@@ -96,8 +96,8 @@ def process_all_events(root_dir, output_dir, target_aspect_ratio, dry_run=False)
     for event_name, posts in posts_by_event.items():
         safe_event_name = "".join(c for c in event_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
         dest_path = os.path.join(output_dir, f"{safe_event_name}.jpg")
-        # if os.path.exists(dest_path):
-        #     continue
+        if os.path.exists(dest_path):
+            continue
 
         event_path = os.path.join(root_dir, event_name)
         images_in_event = find_image_files(event_path, posts)
