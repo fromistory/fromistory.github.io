@@ -1,0 +1,367 @@
+.no-flex {
+  display: block;
+}
+
+tr {
+  width: 100%;         /* Each row fills the table width */
+}
+
+.md-typeset video {
+  max-height: 720px;
+  border-radius: 10px; /* Add rounded corners */
+}
+
+.md-typeset img {
+  max-height: 1080px;
+  border-radius: 8px; /* Add rounded corners */
+}
+
+.id-container p {
+  margin-block-end: 0;
+  margin-block-start: 0;
+}
+
+.post-container {
+  display: block;
+  margin: 0rem auto;
+  padding: 0;
+}
+
+.post-container p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.author-container {
+  display: block;
+  background: #351463;
+  border-radius: 0px; /* Add rounded corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8); /* Add a subtle shadow */
+  margin: 0 auto;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .author-container {
+    /* A little more vertical space than horizontal */
+    padding: 1rem 0.75rem;
+  }
+
+  .md-typeset hr {
+    margin: 0.75rem 0;
+  }
+}
+
+.author-container h2 {
+  text-align: center;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.post-text-container {
+  display: flow-root;
+  padding-bottom: 0.5rem;
+}
+
+/*.post-link {*/
+/*  !*float: right;*!*/
+/*  margin-left: auto;*/
+/*  padding-right: 20px;*/
+/*  padding-bottom: 12px;*/
+/*  !*margin-bottom: 5px;*!*/
+/*}*/
+
+.post-link p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.content-container {
+  /*margin-top: 1rem;*/
+  /*margin-bottom: 1rem;*/
+  display: flex;
+  flex-direction: column;
+}
+
+iframe {
+  border: none; /* Remove the default border */
+  border-radius: 10px; /* Add rounded corners */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  max-height: 1080px;
+}
+
+.youtube-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.youtube-wrapper iframe {
+  aspect-ratio: 16/9;
+}
+
+.video-wrapper {
+  max-height: 1080px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.md-typeset .figcaption,
+.figcaption {
+  font-family: 'Arial', sans-serif; /* Choose a clean font */
+  font-size: 1rem; /* Adjust the text size */
+  color: #555; /* Subtle text color */
+  margin-top: 4px; /* Add space between the image and caption */
+  margin-bottom: 8px; /* Add space between the image and caption */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+}
+
+
+.text-content-container {
+  align-content: center;
+  width: 60%;
+  display: block;
+  margin: auto;
+}
+
+.big-emoji {
+  transform: scale(1.5);
+  color: var(--md-primary-fg-color--light);
+}
+
+.big-emoji:hover {
+  transform: scale(1.75);
+}
+
+.md-pagination__link {
+  transition: color 125ms, background-color 125ms;
+}
+
+.md-pagination__link:hover {
+  background: inherit;
+  color: white;
+  scale: 1.25;
+}
+
+.md-typeset h1 {
+  font-weight: bold;
+}
+
+.md-typeset h1,
+.md-nav__title,
+.md-nav__item--section>.md-nav__link[for] {
+  color: #b393ff
+}
+
+.md-nav__item .md-nav__link--active {
+  color: #ffffff;
+}
+
+.md-typeset table:not([class]) td {
+  vertical-align: middle;
+}
+
+.md-typeset table thead {
+  display: none;
+}
+
+/* Make the header interactive and set the default (collapsed) state */
+.collapsible-header {
+  cursor: pointer;
+
+  /* Set the default (collapsed) state to normal font weight.
+     This overrides the browser's default bolding for h2, h3, etc. */
+  font-weight: normal;
+}
+
+/* Set the active (expanded) state to bold */
+/*.collapsible-header.active {*/
+/*  font-weight: normal;*/
+/*}*/
+
+/*.collapsible-header.active::after {*/
+/*  content: " \2193";*/
+/*}*/
+
+/*.collapsible-header::after {*/
+/*  content: " \2191";*/
+/*}*/
+
+/* media queries */
+/*
+@media only screen and (max-width: 600px) {
+  .post-container,
+  .author-container {
+    padding: 0;
+  }
+}
+*/
+
+.glightbox {
+  display: flex;
+  justify-content: center; /* horizontal */
+  align-items: center;     /* vertical */
+  width: 100%;
+  height: 100%;
+}
+
+.glightbox a {
+  display: flex;
+  justify-content: center; /* horizontal */
+  align-items: center;     /* vertical */
+  width: 100%;
+  height: 100%;
+}
+
+.grid img {
+  max-height: 1080px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  outline: 1px solid #172727;
+  outline-offset: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); /* Add a subtle shadow */
+}
+
+.grid-item:only-child img {
+  object-fit: contain;
+}
+
+.grid-item.portrait:only-child img {
+  width: auto;
+}
+
+.grid h1 {
+  margin: 0;
+}
+
+@media (min-width: 600px) {
+    .grid-item.landscape {
+      grid-column: span 2;
+    }
+}
+
+.grid-item p {
+  width: 100%;
+  height: 100%;
+}
+
+.video-thumb img {
+  max-height: 1080px;
+}
+
+.video-thumb {
+  position: relative;
+  display: inline-block; /* Or block, depending on your layout */
+}
+
+.video-thumb::after {
+  content: "▶";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* --- New styles for the circle --- */
+  width: 3rem; /* The size of the circle */
+  height: 3rem;
+  background: #b393ff; /* Optional: semi-transparent background */
+  border-radius: 50%;         /* This makes it a circle */
+
+  /* --- New styles for centering the icon --- */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* --- Icon styling --- */
+  color: white;
+  font-size: 1.5rem; /* Adjusted size for the icon inside the circle */
+  padding-left: 0.3rem; /* Nudge the icon for perfect visual centering */
+}
+
+.copy-link-button {
+  cursor: pointer;
+}
+
+.post-footer {
+    margin-left: auto;
+    padding-top: .5rem;
+    padding-right: .5rem;
+}
+
+.footer-buttons {
+  display: flex;
+  justify-content: flex-end; /* Ensures items are pushed to the right edge of the container */
+  gap: 1.2rem;               /* Spacing between buttons */
+}
+
+/* Container to hold all notifications */
+#notification-container {
+  position: fixed; /* Stays in place even when scrolling */
+  bottom: 2rem;
+  left: 50%;
+  z-index: 1050; /* Ensures it's on top of most other content */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between multiple notifications */
+  align-items: flex-end;
+}
+
+/* Container for the button/element that will trigger the tooltip */
+.tooltip {
+  position: relative; /* Establishes the positioning context for the tooltip */
+  display: inline-block;
+}
+
+/* The tooltip bubble itself */
+.tooltip .tooltiptext {
+  /* ✨ IMPROVEMENT 1: Modern Centering */
+  position: absolute;
+  left: 50%;
+  bottom: 125%; /* Slightly adjusted for a better pop-up feel */
+  transform: translate(-50%); /* Centers the element regardless of its width */
+
+  /* Visual Styling */
+  /*width: 120px;*/
+
+  max-width: 220px;       /* Set an upper limit for the width */
+  min-width: 80px;        /* Optional: Set a minimum width for very short text */
+  white-space: nowrap;    /* Allow text to wrap onto multiple lines */
+
+  background-color: var(--md-primary-fg-color);
+  color: #fff;
+  text-align: center;
+  padding: 4px 16px; /* Slightly more padding for better spacing */
+  border-radius: 6px;
+  /*box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); !* ✨ IMPROVEMENT 3: Softer shadow *!*/
+  z-index: 10; /* Use a higher z-index just in case */
+
+  /* ✨ IMPROVEMENT 2: Smooth Transitions */
+  opacity: 0;
+  visibility: hidden; /* Hide it completely by default */
+  will-change: opacity, transform; /* ✨ IMPROVEMENT 5: Performance hint */
+}
+
+/* The little arrow pointing to the element */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Position it at the bottom of the tooltip */
+  left: 50%;
+  transform: translateX(-50%); /* ✨ IMPROVEMENT 1: Also center the arrow */
+
+  border-width: 5px;
+  border-style: solid;
+  /* ✨ IMPROVEMENT 4: Use the same color as the background */
+  border-color: var(--md-primary-fg-color) transparent transparent transparent;
+}
+
+/* The class your JavaScript adds to show the tooltip */
+.tooltiptext.show {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, -0.4rem); /* Move it to its final position */
+}
